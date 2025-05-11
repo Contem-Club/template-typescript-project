@@ -1,7 +1,13 @@
 {
   "name": "typescript-template",
   "version": "1.0.0",
-  "description": "Typescript template with linting, formatting and vscode settings",
+  "author": {
+    "name": "Simon Scheurer",
+    "email": "simon@teklens.ch",
+    "url": "https://teklens.ch"
+  },
+  "description": "Typescript template with linting, formatting, testing, and vscode settings",
+  "license": "MIT",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
