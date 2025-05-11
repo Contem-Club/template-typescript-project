@@ -1,8 +1,9 @@
 import { loadConfig } from './config.js'
+import { formatGreeting } from './utils.js'
 
 async function main() {
   const config = loadConfig()
-  console.log(`Hello, ${config.name}`)
+  console.log(formatGreeting(config.name))
 }
 
 // Run the main function

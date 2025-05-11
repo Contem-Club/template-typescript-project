@@ -4,5 +4,12 @@
   },
   "editor.formatOnSave": false,
   "eslint.validate": ["typescript"],
-  "prettier.requireConfig": true
+  "prettier.requireConfig": true,
+  
+  "testing.automaticallyOpenPeekView": "never",
+  "testing.followRunningTest": true,
+  
+  "vitest.enable": true,
+  "vitest.commandLine": "pnpm exec vitest",
+  "vitest.showFailMessages": true
 }
