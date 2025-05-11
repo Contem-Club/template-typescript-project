@@ -13,6 +13,13 @@ A basic TypeScript template to use for new projects
 1. Make sure https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint extension is installed
 2. Make sure https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode extension is installed
 3. Make sure https://marketplace.visualstudio.com/items?itemName=vitest.explorer extension is installed for test integration
+4. Node & npm installed
+5. Install pnpm globally - `npm install -g pnpm`
+
+## Installation
+
+- `pnpm install` - Install dependencies
+- `pnpm run dev` - Run application
 
 ## Testing
 
