@@ -1,0 +1,38 @@
+{
+  "name": "typescript-template",
+  "version": "1.0.0",
+  "description": "Typescript template with linting, formatting and vscode settings",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "pnpm run build && node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "check": "eslint . --ext .ts",
+    "fix": "eslint . --ext .ts --fix",
+    "lint:fix": "pnpm run check && pnpm run fix",
+    "lint:prettier": "prettier --write \"src/**/*.ts\"",
+    "format": "pnpm run lint:fix && pnpm run lint:prettier"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.17",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^9.26.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.4.0",
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.4",
+    "typescript": "^5.5.4"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "eslint"
+      ]
+    }
+  }
+}
