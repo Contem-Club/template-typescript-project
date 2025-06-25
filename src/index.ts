@@ -1,13 +1,9 @@
-import { loadConfig } from './config.js'
-import { formatGreeting } from './utils.js'
+import { Server } from './backend/server.js';
 
-async function main() {
-  const config = loadConfig()
-  console.log(formatGreeting(config.name))
+try {
+  const server = new Server();
+  server.start();
+} catch (error) {
+  console.error('Failed to start server:', error);
+  process.exit(1);
 }
-
-// Run the main function
-main().catch((error) => {
-  console.error('Unhandled error:', error)
-  process.exit(1)
-})
