@@ -6,7 +6,9 @@ import dotenv from 'dotenv';
 import { GeminiClient } from './api/gemini-client.js';
 import { PromptService } from './services/prompt-service.js';
 import { ChatService } from './services/chat-service.js';
+import { AIChatService } from './services/ai-chat-service.js';
 import { ChatRoutes } from './routes/chat-routes.js';
+import { AIChatRoutes } from './routes/ai-chat-routes.js';
 
 // Load environment variables
 dotenv.config();
@@ -49,17 +51,23 @@ export class Server {
     }
 
     // Initialize services
-    const geminiClient = new GeminiClient({ 
+    const geminiClient = new GeminiClient({
       apiKey: geminiApiKey,
       model: process.env.GEMINI_MODEL || 'gemini-1.5-flash'
     });
-    
+
     const promptService = new PromptService();
     const chatService = new ChatService(geminiClient);
+    const aiChatService = new AIChatService();
 
     // Setup routes
     const chatRoutes = new ChatRoutes(promptService, chatService);
+    const aiChatRoutes = new AIChatRoutes(promptService, aiChatService);
+
+    // Keep legacy routes for backward compatibility
     this.app.use('/api/chat', chatRoutes.getRouter());
+    // Add new AI-powered routes
+    this.app.use('/api/ai', aiChatRoutes.getRouter());
   }
 
   private setupRoutes(): void {
@@ -68,8 +76,8 @@ export class Server {
       res.json({
         status: 'OK',
         timestamp: new Date().toISOString(),
-        version: '1.1.1', // Testing hot reload functionality
-        features: ['empty-context-support']
+        version: '2.0.0', // AI SDK integration with tools
+        features: ['empty-context-support', 'ai-sdk-integration', 'conversation-completion-tool', 'tool-usage-gathering']
       });
     });
 
