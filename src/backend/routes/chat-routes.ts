@@ -30,13 +30,13 @@ export class ChatRoutes {
     try {
       const { context }: CreatePromptRequest = req.body;
 
-      if (!context) {
-        res.status(400).json({ error: 'Context is required' });
+      if (context === undefined || context === null) {
+        res.status(400).json({ error: 'Context field is required (can be empty string)' });
         return;
       }
 
       const prompt = this.promptService.createPrompt(context);
-      
+
       const response: CreatePromptResponse = { prompt };
       res.json(response);
     } catch (error) {

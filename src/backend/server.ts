@@ -65,7 +65,12 @@ export class Server {
   private setupRoutes(): void {
     // Health check endpoint
     this.app.get('/health', (req, res) => {
-      res.json({ status: 'OK', timestamp: new Date().toISOString() });
+      res.json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        version: '1.1.1', // Testing hot reload functionality
+        features: ['empty-context-support']
+      });
     });
 
     // 404 handler
