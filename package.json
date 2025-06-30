@@ -30,14 +30,18 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@ai-sdk/google": "^1.2.19",
+    "@ai-sdk/react": "^1.2.12",
     "@google/generative-ai": "^0.24.1",
     "@types/uuid": "^10.0.0",
+    "ai": "^4.3.16",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "morgan": "^1.10.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
