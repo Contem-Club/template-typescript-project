@@ -1,27 +1,27 @@
 export interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: Date
 }
 
 export interface ChatHistory {
-  messages: ChatMessage[];
+  messages: ChatMessage[]
 }
 
 export interface CreatePromptRequest {
-  context: string;
+  context: string
 }
 
 export interface CreatePromptResponse {
-  prompt: string;
+  prompt: string
 }
 
 export interface GenerateResponseRequest {
-  chatHistory: ChatMessage[];
-  prompt: string;
+  chatHistory: ChatMessage[]
+  prompt: string
 }
 
 export interface GenerateResponseResponse {
-  message: ChatMessage;
+  message: ChatMessage
 }

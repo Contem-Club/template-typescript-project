@@ -1,19 +1,28 @@
-import { streamText, type CoreMessage } from 'ai';
-import { createGoogleAI } from '../config/ai-config.js';
-import { ConversationCompletionTool, ToolUsageGatheringTool } from '../tools/index.js';
+import { streamText, type CoreMessage } from 'ai'
+import { createGoogleAI } from '../config/ai-config.js'
+import {
+  ConversationCompletionTool,
+  ToolUsageGatheringTool,
+} from '../tools/index.js'
 
 export interface IAIChatService {
-  generateStreamingResponse(messages: CoreMessage[], systemPrompt: string): Promise<any>;
+  generateStreamingResponse(
+    messages: CoreMessage[],
+    systemPrompt: string,
+  ): Promise<any>
 }
 
 export class AIChatService implements IAIChatService {
-  private googleAI;
+  private googleAI
 
   constructor() {
-    this.googleAI = createGoogleAI();
+    this.googleAI = createGoogleAI()
   }
 
-  async generateStreamingResponse(messages: CoreMessage[], systemPrompt: string) {
+  async generateStreamingResponse(
+    messages: CoreMessage[],
+    systemPrompt: string,
+  ) {
     try {
       const result = streamText({
         model: this.googleAI.model,
@@ -31,12 +40,12 @@ export class AIChatService implements IAIChatService {
             },
           },
         },
-      });
+      })
 
-      return result;
+      return result
     } catch (error) {
-      console.error('Error generating streaming response:', error);
-      throw new Error('Failed to generate streaming response');
+      console.error('Error generating streaming response:', error)
+      throw new Error('Failed to generate streaming response')
     }
   }
 }
