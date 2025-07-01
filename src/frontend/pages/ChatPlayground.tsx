@@ -1,33 +1,79 @@
 import React, { useState } from 'react';
 import { ChatWindow } from '../components/ChatWindow.js';
 import { ChatInput } from '../components/ChatInput.js';
-import { ChatContext } from '../components/ChatContext.js';
+import { ContextManager } from '../components/ContextManager.js';
+import { SystemPromptTemplate } from '../components/SystemPromptTemplate.js';
 import { PromptOutput } from '../components/PromptOutput.js';
 import { ChatMessage } from '../types/chat.js';
 import { ApiService } from '../services/api-service.js';
 import { v4 as uuidv4 } from 'uuid';
 
 export const ChatPlayground: React.FC = () => {
-  const [context, setContext] = useState('');
-  const [currentPrompt, setCurrentPrompt] = useState('');
+  // Phase 1: System Prompt Creation
+  const [contexts, setContexts] = useState<string[]>([]);
+  const [systemPromptTemplate, setSystemPromptTemplate] = useState('');
+  const [finalSystemPrompt, setFinalSystemPrompt] = useState('');
+  const [isSystemPromptReady, setIsSystemPromptReady] = useState(false);
+  const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
+
+  // Phase 2: Chat Interaction
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const apiService = new ApiService();
 
-  const handleContextChange = (newContext: string) => {
-    setContext(newContext);
+  // Phase 1: System Prompt Creation Handlers
+  const handleContextsChange = (newContexts: string[]) => {
+    setContexts(newContexts);
+    // Reset system prompt when contexts change
+    if (isSystemPromptReady) {
+      setIsSystemPromptReady(false);
+      setFinalSystemPrompt('');
+    }
   };
 
+  const handleTemplateChange = (newTemplate: string) => {
+    setSystemPromptTemplate(newTemplate);
+    // Reset system prompt when template changes
+    if (isSystemPromptReady) {
+      setIsSystemPromptReady(false);
+      setFinalSystemPrompt('');
+    }
+  };
+
+  const handleGenerateSystemPrompt = async () => {
+    try {
+      setIsGeneratingPrompt(true);
+
+      const prompt = await apiService.createPromptFromTemplate(contexts, systemPromptTemplate);
+      setFinalSystemPrompt(prompt);
+      setIsSystemPromptReady(true);
+
+    } catch (error) {
+      console.error('Error generating system prompt:', error);
+      alert('Failed to generate system prompt. Please try again.');
+    } finally {
+      setIsGeneratingPrompt(false);
+    }
+  };
+
+  const handleResetSystemPrompt = () => {
+    setIsSystemPromptReady(false);
+    setFinalSystemPrompt('');
+    setMessages([]);
+  };
+
+  // Phase 2: Chat Interaction Handler
   const handleSendMessage = async (messageContent: string) => {
+    if (!isSystemPromptReady || !finalSystemPrompt) {
+      alert('Please generate a system prompt first.');
+      return;
+    }
+
     try {
       setIsLoading(true);
 
-      // Step 1: Create prompt with context and display it
-      const prompt = await apiService.createPrompt(context);
-      setCurrentPrompt(prompt);
-
-      // Step 2: Add user message to chat
+      // Add user message to chat
       const userMessage: ChatMessage = {
         id: uuidv4(),
         role: 'user',
@@ -38,7 +84,7 @@ export const ChatPlayground: React.FC = () => {
       const updatedMessages = [...messages, userMessage];
       setMessages(updatedMessages);
 
-      // Step 3: Stream response from AI with the generated system prompt
+      // Stream response from AI with the pre-generated system prompt
       const response = await fetch('http://localhost:3001/api/ai/chat', {
         method: 'POST',
         headers: {
@@ -49,7 +95,7 @@ export const ChatPlayground: React.FC = () => {
             role: msg.role,
             content: msg.content,
           })),
-          systemPrompt: prompt,
+          systemPrompt: finalSystemPrompt,
         }),
       });
 
@@ -124,10 +170,70 @@ export const ChatPlayground: React.FC = () => {
     <div className="chat-playground">
       <div className="chat-playground-header">
         <h1>Chatbot Playground</h1>
-        <p>A simple chatbot interface with context-aware prompting</p>
+        <p>Two-phase AI chat: Create system prompt, then chat</p>
       </div>
-      
-      <div className="chat-layout">
+
+      {/* Phase 1: System Prompt Creation */}
+      <div className="system-prompt-creation">
+        <div className="phase-header">
+          <h2>Phase 1: System Prompt Creation</h2>
+          {isSystemPromptReady && (
+            <button
+              onClick={handleResetSystemPrompt}
+              className="reset-btn"
+              type="button"
+            >
+              Reset & Start Over
+            </button>
+          )}
+        </div>
+
+        <div className="creation-content">
+          <div className="creation-left">
+            <ContextManager
+              contexts={contexts}
+              onContextsChange={handleContextsChange}
+            />
+          </div>
+
+          <div className="creation-right">
+            <SystemPromptTemplate
+              template={systemPromptTemplate}
+              onTemplateChange={handleTemplateChange}
+              contextCount={contexts.length}
+            />
+
+            <div className="generate-section">
+              <button
+                onClick={handleGenerateSystemPrompt}
+                disabled={isGeneratingPrompt || isSystemPromptReady}
+                className="generate-prompt-btn"
+                type="button"
+              >
+                {isGeneratingPrompt ? 'Generating...' :
+                 isSystemPromptReady ? 'System Prompt Ready' :
+                 'Generate System Prompt'}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {finalSystemPrompt && (
+          <div className="prompt-output-container">
+            <PromptOutput prompt={finalSystemPrompt} />
+          </div>
+        )}
+      </div>
+
+      {/* Phase 2: Chat Interaction */}
+      <div className={`chat-interaction ${!isSystemPromptReady ? 'disabled' : ''}`}>
+        <div className="phase-header">
+          <h2>Phase 2: Chat Interaction</h2>
+          {!isSystemPromptReady && (
+            <p className="phase-note">Complete Phase 1 to enable chat</p>
+          )}
+        </div>
+
         <div className="chat-main">
           <div className="chat-window-container">
             <ChatWindow messages={messages} />
@@ -136,19 +242,8 @@ export const ChatPlayground: React.FC = () => {
             <ChatInput
               onSendMessage={handleSendMessage}
               isLoading={isLoading}
+              disabled={!isSystemPromptReady}
             />
-          </div>
-        </div>
-
-        <div className="chat-sidebar">
-          <div className="chat-context-container">
-            <ChatContext
-              context={context}
-              onContextChange={handleContextChange}
-            />
-          </div>
-          <div className="prompt-output-container">
-            <PromptOutput prompt={currentPrompt} />
           </div>
         </div>
       </div>

@@ -3,14 +3,15 @@ import React, { useState } from 'react';
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
   isLoading: boolean;
+  disabled?: boolean;
 }
 
-export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
+export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, disabled = false }) => {
   const [message, setMessage] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim() && !isLoading) {
+    if (message.trim() && !isLoading && !disabled) {
       onSendMessage(message.trim());
       setMessage('');
     }
@@ -34,17 +35,17 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Type your message here..."
-            disabled={isLoading}
+            placeholder={disabled ? "Complete Phase 1 to enable chat..." : "Type your message here..."}
+            disabled={isLoading || disabled}
             rows={3}
             className="message-input"
           />
           <button
             type="submit"
-            disabled={!message.trim() || isLoading}
+            disabled={!message.trim() || isLoading || disabled}
             className="send-button"
           >
-            {isLoading ? 'Sending...' : 'Send'}
+            {isLoading ? 'Sending...' : disabled ? 'Chat Disabled' : 'Send'}
           </button>
         </div>
       </form>
