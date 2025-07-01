@@ -59,12 +59,7 @@ export class AIChatRoutes {
       // Generate streaming response
       const result = await this.aiChatService.generateStreamingResponse(coreMessages, systemPrompt);
 
-      // Set headers for streaming
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
-
-      // Stream the response
+      // Stream the response using the AI SDK's built-in method
       result.pipeDataStreamToResponse(res);
     } catch (error) {
       console.error('Error in streaming chat:', error);
