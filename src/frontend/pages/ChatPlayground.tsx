@@ -1,78 +1,48 @@
 import React, { useState } from 'react';
+import { useChat } from '@ai-sdk/react';
 import { ChatWindow } from '../components/ChatWindow.js';
 import { ChatInput } from '../components/ChatInput.js';
 import { ChatContext } from '../components/ChatContext.js';
 import { PromptOutput } from '../components/PromptOutput.js';
-import { ChatMessage, ChatState } from '../types/chat.js';
+import { ChatMessage } from '../types/chat.js';
 import { ApiService } from '../services/api-service.js';
-import { v4 as uuidv4 } from 'uuid';
 
 export const ChatPlayground: React.FC = () => {
-  const [chatState, setChatState] = useState<ChatState>({
-    messages: [],
-    context: '',
-    currentPrompt: '',
-    isLoading: false,
-  });
+  const [context, setContext] = useState('');
+  const [currentPrompt, setCurrentPrompt] = useState('');
 
   const apiService = new ApiService();
 
-  const handleContextChange = (context: string) => {
-    setChatState(prev => ({ ...prev, context }));
+  // Use the AI SDK's useChat hook for streaming chat
+  const chat = useChat({
+    api: '/api/ai/chat',
+    body: {
+      systemPrompt: currentPrompt,
+    },
+    onError: (error) => {
+      console.error('Chat error:', error);
+    },
+  });
+
+  const handleContextChange = (newContext: string) => {
+    setContext(newContext);
   };
 
   const handleSendMessage = async (messageContent: string) => {
     try {
-      setChatState(prev => ({ ...prev, isLoading: true }));
+      // Step 1: Create prompt with context
+      const prompt = await apiService.createPrompt(context);
+      setCurrentPrompt(prompt);
 
-      // Create user message
-      const userMessage: ChatMessage = {
-        id: uuidv4(),
+      // Step 2: Send message using the AI SDK
+      // The useChat hook will handle the streaming and message management
+      chat.append({
         role: 'user',
         content: messageContent,
-        timestamp: new Date(),
-      };
-
-      // Add user message to chat
-      const updatedMessages = [...chatState.messages, userMessage];
-      setChatState(prev => ({ 
-        ...prev, 
-        messages: updatedMessages 
-      }));
-
-      // Step 1: Create prompt with context
-      const prompt = await apiService.createPrompt(chatState.context);
-      setChatState(prev => ({ 
-        ...prev, 
-        currentPrompt: prompt 
-      }));
-
-      // Step 2: Generate response using the prompt and chat history
-      const assistantMessage = await apiService.generateResponse(updatedMessages, prompt);
-
-      // Add assistant message to chat
-      setChatState(prev => ({
-        ...prev,
-        messages: [...prev.messages, assistantMessage],
-        isLoading: false,
-      }));
+      });
 
     } catch (error) {
       console.error('Error sending message:', error);
-      
-      // Add error message
-      const errorMessage: ChatMessage = {
-        id: uuidv4(),
-        role: 'assistant',
-        content: 'Sorry, I encountered an error while processing your message. Please try again.',
-        timestamp: new Date(),
-      };
-
-      setChatState(prev => ({
-        ...prev,
-        messages: [...prev.messages, errorMessage],
-        isLoading: false,
-      }));
     }
   };
 
@@ -86,25 +56,30 @@ export const ChatPlayground: React.FC = () => {
       <div className="chat-layout">
         <div className="chat-main">
           <div className="chat-window-container">
-            <ChatWindow messages={chatState.messages} />
+            <ChatWindow messages={chat.messages.map(msg => ({
+              id: msg.id,
+              role: msg.role as 'user' | 'assistant',
+              content: msg.content,
+              timestamp: new Date(msg.createdAt || Date.now()),
+            }))} />
           </div>
           <div className="chat-input-container">
-            <ChatInput 
-              onSendMessage={handleSendMessage} 
-              isLoading={chatState.isLoading} 
+            <ChatInput
+              onSendMessage={handleSendMessage}
+              isLoading={chat.isLoading}
             />
           </div>
         </div>
-        
+
         <div className="chat-sidebar">
           <div className="chat-context-container">
-            <ChatContext 
-              context={chatState.context}
+            <ChatContext
+              context={context}
               onContextChange={handleContextChange}
             />
           </div>
           <div className="prompt-output-container">
-            <PromptOutput prompt={chatState.currentPrompt} />
+            <PromptOutput prompt={currentPrompt} />
           </div>
         </div>
       </div>

@@ -10,19 +10,11 @@ export interface CreatePromptResponse {
   prompt: string;
 }
 
-export interface GenerateResponseRequest {
-  chatHistory: ChatMessage[];
-  prompt: string;
-}
-
-export interface GenerateResponseResponse {
-  message: ChatMessage;
-}
-
+// Legacy API service for backward compatibility
 export class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
-    
+
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
@@ -41,19 +33,10 @@ export class ApiService {
 
   async createPrompt(context: string): Promise<string> {
     const request: CreatePromptRequest = { context };
-    const response = await this.request<CreatePromptResponse>('/chat/create-prompt', {
+    const response = await this.request<CreatePromptResponse>('/ai/create-prompt', {
       method: 'POST',
       body: JSON.stringify(request),
     });
     return response.prompt;
-  }
-
-  async generateResponse(chatHistory: ChatMessage[], prompt: string): Promise<ChatMessage> {
-    const request: GenerateResponseRequest = { chatHistory, prompt };
-    const response = await this.request<GenerateResponseResponse>('/chat/generate-response', {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
-    return response.message;
   }
 }
