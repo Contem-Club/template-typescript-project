@@ -15,10 +15,10 @@ export const ChatPlayground: React.FC = () => {
 
   // Use the AI SDK's useChat hook for streaming chat
   const chat = useChat({
-    api: '/api/ai/chat',
-    body: {
+    api: 'http://localhost:3001/api/ai/chat',
+    body: () => ({
       systemPrompt: currentPrompt,
-    },
+    }),
     onError: (error) => {
       console.error('Chat error:', error);
     },
@@ -35,8 +35,8 @@ export const ChatPlayground: React.FC = () => {
       setCurrentPrompt(prompt);
 
       // Step 2: Send message using the AI SDK
-      // The useChat hook will handle the streaming and message management
-      chat.append({
+      // The body will include the current system prompt
+      await chat.append({
         role: 'user',
         content: messageContent,
       });
