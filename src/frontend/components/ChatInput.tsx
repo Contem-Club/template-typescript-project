@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -6,7 +6,7 @@ interface ChatInputProps {
   disabled?: boolean;
 }
 
-export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, disabled = false }) => {
+export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(({ onSendMessage, isLoading, disabled = false }, ref) => {
   const [message, setMessage] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -17,7 +17,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
@@ -32,9 +32,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
       <form onSubmit={handleSubmit} className="chat-input-form">
         <div className="input-group">
           <textarea
+            ref={ref}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder={disabled ? "Complete Phase 1 to enable chat..." : "Type your message here..."}
             disabled={isLoading || disabled}
             rows={3}
@@ -51,4 +52,4 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
       </form>
     </div>
   );
-};
+});

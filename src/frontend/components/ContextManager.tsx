@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { saveContexts, clearContexts } from '../utils/localStorage.js';
 
 interface ContextManagerProps {
   contexts: string[];
@@ -9,8 +10,14 @@ export const ContextManager: React.FC<ContextManagerProps> = ({
   contexts,
   onContextsChange,
 }) => {
+  // Save contexts to localStorage whenever they change
+  useEffect(() => {
+    saveContexts(contexts);
+  }, [contexts]);
+
   const addContext = () => {
-    onContextsChange([...contexts, '']);
+    const newContexts = [...contexts, ''];
+    onContextsChange(newContexts);
   };
 
   const removeContext = (index: number) => {
@@ -24,17 +31,33 @@ export const ContextManager: React.FC<ContextManagerProps> = ({
     onContextsChange(newContexts);
   };
 
+  const clearAllContexts = () => {
+    onContextsChange([]);
+    clearContexts();
+  };
+
   return (
     <div className="context-manager">
       <div className="context-manager-header">
         <h3>Context Elements</h3>
-        <button 
-          onClick={addContext}
-          className="add-context-btn"
-          type="button"
-        >
-          + Add Context
-        </button>
+        <div className="context-manager-actions">
+          <button
+            onClick={addContext}
+            className="add-context-btn"
+            type="button"
+          >
+            + Add Context
+          </button>
+          {contexts.length > 0 && (
+            <button
+              onClick={clearAllContexts}
+              className="clear-contexts-btn"
+              type="button"
+            >
+              Clear All
+            </button>
+          )}
+        </div>
       </div>
       
       <div className="context-list">

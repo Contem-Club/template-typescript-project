@@ -26,30 +26,24 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ messages }) => {
         <h3>Chat Window</h3>
       </div>
       <div className="chat-messages">
-        {messages.length === 0 ? (
-          <div className="empty-state">
-            <p>No messages yet. Start a conversation!</p>
-          </div>
-        ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
-            >
-              <div className="message-header">
-                <span className="message-role">
-                  {message.role === 'user' ? 'You' : 'Assistant'}
-                </span>
-                <span className="message-timestamp">
-                  {formatTimestamp(message.timestamp)}
-                </span>
-              </div>
-              <div className="message-content">
-                {message.content}
-              </div>
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
+          >
+            <div className="message-header">
+              <span className="message-role">
+                {message.role === 'user' ? 'You' : 'Assistant'}
+              </span>
+              <span className="message-timestamp">
+                {formatTimestamp(message.timestamp)}
+              </span>
             </div>
-          ))
-        )}
+            <div className="message-content">
+              {message.content}
+            </div>
+          </div>
+        ))}
         <div ref={messagesEndRef} />
       </div>
     </div>

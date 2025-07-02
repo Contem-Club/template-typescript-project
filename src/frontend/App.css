@@ -250,6 +250,11 @@ body {
   font-size: 1.1rem;
 }
 
+.context-manager-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .add-context-btn {
   background-color: #27ae60;
   color: white;
@@ -262,6 +267,20 @@ body {
 
 .add-context-btn:hover {
   background-color: #229954;
+}
+
+.clear-contexts-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.clear-contexts-btn:hover {
+  background-color: #c0392b;
 }
 
 .no-contexts {
@@ -337,6 +356,11 @@ body {
   font-size: 1.1rem;
 }
 
+.template-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .use-default-btn {
   background-color: #3498db;
   color: white;
@@ -349,6 +373,20 @@ body {
 
 .use-default-btn:hover {
   background-color: #2980b9;
+}
+
+.clear-template-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.clear-template-btn:hover {
+  background-color: #c0392b;
 }
 
 .template-input {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChatWindow } from '../components/ChatWindow.js';
 import { ChatInput } from '../components/ChatInput.js';
 import { ContextManager } from '../components/ContextManager.js';
@@ -7,20 +7,44 @@ import { PromptOutput } from '../components/PromptOutput.js';
 import { ChatMessage } from '../types/chat.js';
 import { ApiService } from '../services/api-service.js';
 import { v4 as uuidv4 } from 'uuid';
+import { loadContexts, loadSystemPromptTemplate, clearAllChatPlaygroundData } from '../utils/localStorage.js';
 
 export const ChatPlayground: React.FC = () => {
   // Phase 1: System Prompt Creation
-  const [contexts, setContexts] = useState<string[]>([]);
-  const [systemPromptTemplate, setSystemPromptTemplate] = useState('');
+  const [contexts, setContexts] = useState<string[]>(() => loadContexts());
+  const [systemPromptTemplate, setSystemPromptTemplate] = useState(() => loadSystemPromptTemplate());
   const [finalSystemPrompt, setFinalSystemPrompt] = useState('');
   const [isSystemPromptReady, setIsSystemPromptReady] = useState(false);
   const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
+  const [isPhaseOneCollapsed, setIsPhaseOneCollapsed] = useState(false);
 
   // Phase 2: Chat Interaction
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasShownInitialMessage, setHasShownInitialMessage] = useState(false);
 
   const apiService = new ApiService();
+  const chatInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Add initial message when system prompt becomes ready and auto-focus chat input
+  useEffect(() => {
+    if (isSystemPromptReady && !hasShownInitialMessage && messages.length === 0) {
+      const initialMessage: ChatMessage = {
+        id: uuidv4(),
+        role: 'assistant',
+        content: 'Please tell us more about what AI tools you use, in what use-cases AI plays an important role already and other important information related to AI and LLM use in your company',
+        timestamp: new Date(),
+      };
+      setMessages([initialMessage]);
+      setHasShownInitialMessage(true);
+
+      // Collapse phase one and auto-focus chat input
+      setIsPhaseOneCollapsed(true);
+      setTimeout(() => {
+        chatInputRef.current?.focus();
+      }, 100);
+    }
+  }, [isSystemPromptReady, hasShownInitialMessage, messages.length]);
 
   // Phase 1: System Prompt Creation Handlers
   const handleContextsChange = (newContexts: string[]) => {
@@ -61,6 +85,10 @@ export const ChatPlayground: React.FC = () => {
     setIsSystemPromptReady(false);
     setFinalSystemPrompt('');
     setMessages([]);
+    setHasShownInitialMessage(false);
+    setContexts([]);
+    setSystemPromptTemplate('');
+    clearAllChatPlaygroundData();
   };
 
   // Phase 2: Chat Interaction Handler
@@ -176,7 +204,12 @@ export const ChatPlayground: React.FC = () => {
       {/* Phase 1: System Prompt Creation */}
       <div className="system-prompt-creation">
         <div className="phase-header">
-          <h2>Phase 1: System Prompt Creation</h2>
+          <h2
+            onClick={() => setIsPhaseOneCollapsed(!isPhaseOneCollapsed)}
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+          >
+            Phase 1: System Prompt Creation {isPhaseOneCollapsed ? '▶' : '▼'}
+          </h2>
           {isSystemPromptReady && (
             <button
               onClick={handleResetSystemPrompt}
@@ -188,65 +221,69 @@ export const ChatPlayground: React.FC = () => {
           )}
         </div>
 
-        <div className="creation-content">
-          <div className="creation-left">
-            <ContextManager
-              contexts={contexts}
-              onContextsChange={handleContextsChange}
-            />
-          </div>
+        {!isPhaseOneCollapsed && (
+          <>
+            <div className="creation-content">
+              <div className="creation-left">
+                <ContextManager
+                  contexts={contexts}
+                  onContextsChange={handleContextsChange}
+                />
+              </div>
 
-          <div className="creation-right">
-            <SystemPromptTemplate
-              template={systemPromptTemplate}
-              onTemplateChange={handleTemplateChange}
-              contextCount={contexts.length}
-            />
+              <div className="creation-right">
+                <SystemPromptTemplate
+                  template={systemPromptTemplate}
+                  onTemplateChange={handleTemplateChange}
+                  contextCount={contexts.length}
+                />
 
-            <div className="generate-section">
-              <button
-                onClick={handleGenerateSystemPrompt}
-                disabled={isGeneratingPrompt || isSystemPromptReady}
-                className="generate-prompt-btn"
-                type="button"
-              >
-                {isGeneratingPrompt ? 'Generating...' :
-                 isSystemPromptReady ? 'System Prompt Ready' :
-                 'Generate System Prompt'}
-              </button>
+                <div className="generate-section">
+                  <button
+                    onClick={handleGenerateSystemPrompt}
+                    disabled={isGeneratingPrompt || isSystemPromptReady}
+                    className="generate-prompt-btn"
+                    type="button"
+                  >
+                    {isGeneratingPrompt ? 'Generating...' :
+                     isSystemPromptReady ? 'System Prompt Ready' :
+                     'Generate System Prompt'}
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {finalSystemPrompt && (
-          <div className="prompt-output-container">
-            <PromptOutput prompt={finalSystemPrompt} />
-          </div>
+            {finalSystemPrompt && (
+              <div className="prompt-output-container">
+                <PromptOutput prompt={finalSystemPrompt} />
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {/* Phase 2: Chat Interaction */}
-      <div className={`chat-interaction ${!isSystemPromptReady ? 'disabled' : ''}`}>
-        <div className="phase-header">
-          <h2>Phase 2: Chat Interaction</h2>
-          {!isSystemPromptReady && (
-            <p className="phase-note">Complete Phase 1 to enable chat</p>
-          )}
-        </div>
+      {/* Phase 2: Chat Interaction - Only show when system prompt is ready */}
+      {isSystemPromptReady && (
+        <div className="chat-interaction">
+          <div className="phase-header">
+            <h2>Phase 2: Chat Interaction</h2>
+          </div>
 
-        <div className="chat-main">
-          <div className="chat-window-container">
-            <ChatWindow messages={messages} />
-          </div>
-          <div className="chat-input-container">
-            <ChatInput
-              onSendMessage={handleSendMessage}
-              isLoading={isLoading}
-              disabled={!isSystemPromptReady}
-            />
+          <div className="chat-main">
+            <div className="chat-window-container">
+              <ChatWindow messages={messages} />
+            </div>
+            <div className="chat-input-container">
+              <ChatInput
+                ref={chatInputRef}
+                onSendMessage={handleSendMessage}
+                isLoading={isLoading}
+                disabled={!isSystemPromptReady}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

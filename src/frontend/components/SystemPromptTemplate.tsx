@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { saveSystemPromptTemplate, clearSystemPromptTemplate } from '../utils/localStorage.js';
 
 interface SystemPromptTemplateProps {
   template: string;
@@ -11,6 +12,10 @@ export const SystemPromptTemplate: React.FC<SystemPromptTemplateProps> = ({
   onTemplateChange,
   contextCount,
 }) => {
+  // Save template to localStorage whenever it changes
+  useEffect(() => {
+    saveSystemPromptTemplate(template);
+  }, [template]);
   const getPlaceholderHelp = () => {
     const placeholders = ['{contexts} - All contexts combined'];
     
@@ -21,18 +26,6 @@ export const SystemPromptTemplate: React.FC<SystemPromptTemplateProps> = ({
     }
     
     return placeholders;
-  };
-
-  const getDefaultTemplate = () => {
-    if (contextCount === 0) {
-      return 'You are a helpful AI assistant. Please provide helpful, accurate, and informative responses to user questions.';
-    }
-    
-    return `You are a helpful AI assistant. Use the following context to provide accurate and relevant responses.
-
-{contexts}
-
-Please respond to user queries based on the provided context. If the context doesn't contain relevant information, acknowledge this and provide a general helpful response.`;
   };
 
   const insertPlaceholder = (placeholder: string) => {
@@ -51,21 +44,26 @@ Please respond to user queries based on the provided context. If the context doe
     }
   };
 
-  const useDefaultTemplate = () => {
-    onTemplateChange(getDefaultTemplate());
+  const clearTemplate = () => {
+    onTemplateChange('');
+    clearSystemPromptTemplate();
   };
 
   return (
     <div className="system-prompt-template">
       <div className="template-header">
         <h3>System Prompt Template</h3>
-        <button 
-          onClick={useDefaultTemplate}
-          className="use-default-btn"
-          type="button"
-        >
-          Use Default Template
-        </button>
+        <div className="template-actions">
+          {template && (
+            <button
+              onClick={clearTemplate}
+              className="clear-template-btn"
+              type="button"
+            >
+              Clear Template
+            </button>
+          )}
+        </div>
       </div>
       
       <div className="template-content">

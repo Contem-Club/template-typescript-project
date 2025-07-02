@@ -11,6 +11,8 @@ export interface IPromptService {
 export class PromptService implements IPromptService {
   private readonly systemPromptWithContext: string
   private readonly systemPromptWithoutContext: string
+  private readonly defaultPrompt: string
+  private readonly defaultPromptWithContext: string
 
   constructor() {
     this.systemPromptWithContext = `You are a helpful AI assistant. Use the following context to provide accurate and relevant responses.
@@ -19,7 +21,44 @@ Context: {CONTEXT}
 
 Please respond to user queries based on the provided context. If the context doesn't contain relevant information, acknowledge this and provide a general helpful response.`
 
-    this.systemPromptWithoutContext = `You are a helpful AI assistant. Please respond to user queries in a helpful, accurate, and engaging manner. Provide clear and informative responses based on your knowledge.`
+    this.defaultPrompt = `
+Your goal is to gather information from users on AI usage within their company.
+Ask the user to provide the following information:
+1. AI Products/Tools Used: (e.g., Cursor, ChatGPT, Microsoft Copilot) — inquire
+about their primary function and users.
+2. Underlying AI Models/Frameworks: (e.g., GPT-4, Claude, PyTorch, CrewAI) —
+ask if they're used directly or embedded, and the reasons for their selection.
+3. Implemented AI Use Cases: (e.g., Support automation, Expense management)
+— seek details on the business problem solved, the impact achieved, and the
+benefiting departments.
+4. Units/Departments Using AI: (e.g., HR, IT, Marketing) — determine the nature
+of AI support and the level of adoption within each.
+After the initial user message, ask for additional details and try to cover all the topics above.
+Do now overwhelm the user with questions. Keep it conversational and ask one question at a time.
+It's always a good idea to ask for examples and specific details.
+`
+
+    this.defaultPromptWithContext =
+      this.defaultPrompt +
+      `
+Other employees from the same company have provideded the information below. Verify that information
+by asking back and try to use this information to push the user into giving more details.
+Do not disclose personal details on the other employes.
+
+Example:
+If the context is:
+User: I am Mark and work in HR. We often use ChatGPT to summarize resumes and also are evaluating
+a new AI SaaS software to automate our onboarding process.
+Then you should use this information like this:
+AI Assistant: Other employees mentioned the use of ChatGPT. Do you use this as well?
+Or
+AI Assistant: HR seems to be evaluating a SaaS solution for on-boarding. Do you know about similar initiatives in your department?
+
+ACTUAL CONTEXTS:
+{contexts}
+`
+
+    this.systemPromptWithoutContext = this.defaultPrompt
   }
 
   createPrompt(context: string): string {
@@ -43,13 +82,12 @@ Please respond to user queries based on the provided context. If the context doe
           .map((ctx, index) => `Context ${index + 1}: ${ctx.trim()}`)
           .join('\n\n')
 
-        return `You are a helpful AI assistant. Use the following context to provide accurate and relevant responses.
-
-${contextText}
-
-Please respond to user queries based on the provided context. If the context doesn't contain relevant information, acknowledge this and provide a general helpful response.`
+        return this.defaultPromptWithContext.replace(
+          /\{contexts\}/g,
+          contextText,
+        )
       } else {
-        return this.systemPromptWithoutContext
+        return this.defaultPrompt
       }
     }
 
